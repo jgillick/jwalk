@@ -1,0 +1,65 @@
+<html>
+<head>
+	<title>All JavaScript Elements</title>
+</head>
+<body>
+	
+	<h1>Objects</h1>
+	<ul>
+	<%
+	
+		var global = elements; 
+		var objs = global.getChildren(4);
+		
+		for( var i = 0, len = objs.length; i < len; i++){
+			print("<li><strong>"+ objs[i].name +"</strong>: "+ objs[i].description +"</li>");
+		}
+	%>
+	</ul>
+	
+	<h1>Functions</h1>
+	<ul>
+	<%
+		var objs = global.getChildren(2);
+		
+		for( var i = 0, len = objs.length; i < len; i++){
+			print("<li><strong>"+ objs[i].name +"</strong>: "+ objs[i].description +"</li>");
+		}
+	%>
+	</ul>
+	
+	<h1>Methods</h1>
+	<ul>
+	<%
+		var objs = global.getChildren(6);
+		
+		for( var i = 0, len = objs.length; i < len; i++){
+			print("<li><strong>"+ objs[i].name +"</strong>: "+ objs[i].description +"</li>");
+		}
+	%>
+	</ul>
+	
+	<h1>Variables</h1>
+	<ul>
+	<%
+		var objs = global.getChildren(3);
+		
+		for( var i = 0, len = objs.length; i < len; i++){
+			print("<li><strong>"+ objs[i].name +"</strong>: "+ objs[i].description +"</li>");
+		}
+	%>
+	</ul>
+	
+	<h1>Properties</h1>
+	<ul>
+	<%
+		var objs = global.getChildren(5);
+		
+		for( var i = 0, len = objs.length; i < len; i++){
+			print("<li><strong>"+ objs[i].name +"</strong>: "+ objs[i].description +"</li>");
+		}
+	%>
+	</ul>
+
+</body>
+</html>

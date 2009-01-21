@@ -1,0 +1,14 @@
+#!/bin/sh
+
+CMD=$_
+DIR="$CMD/../.."
+
+# Collect args
+args=
+while [ "$1" != "" ]; do
+	args="$args $1"
+	shift
+done
+
+# Call JWalk
+java -jar "$DIR/jwalk.jar" $args
