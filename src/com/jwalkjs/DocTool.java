@@ -85,15 +85,6 @@ public class DocTool {
 			parsed.add(global);
 		
 			// Load template engine
-			/*FileReader tmplFile = new FileReader(appDir.getPath() +"/doctool/templates/default/index.tmpl");
-			Template tmplParser = new Template(tmplFile, "index.tmpl");
-			Map<String, Object> tmplContext = new HashMap<String, Object>();
-			tmplContext.put("global", globalDoc);
-			tmplContext.put("Hello", "world");
-			
-			FileWriter tmplOut = new FileWriter( new File(appDir.getPath() +"/doctool/out/index.html") ); 
-			tmplParser.expand(tmplContext, tmplOut);*/
-			
 			Map<String, Object> globals = new HashMap<String, Object>();
 			globals.put("elements", globalDoc);;
 			Template templates = new Template( appDir.getPath() +"/doctool/templates/default/" );

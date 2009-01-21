@@ -61,7 +61,9 @@ public class Template {
 		throws IOException {
 		
 		File tmplFile = new File(tmplRoot, template);
-		parse( tmplFile, new File(out), globals );
+		BufferedOutputStream fileOut = new BufferedOutputStream( new FileOutputStream( out ) );
+		parse( tmplFile, fileOut, globals );
+		fileOut.close();
 	}
 	
 	/**
@@ -73,7 +75,10 @@ public class Template {
 	 */
 	public void parse(File template, File out, Map<String, Object> globals)
 		throws IOException {
-		parse( template, new FileWriter(out), globals );
+
+		BufferedOutputStream fileOut = new BufferedOutputStream( new FileOutputStream( out ) );
+		parse( template, fileOut, globals );
+		fileOut.close();
 	}
 
 	/**
@@ -83,7 +88,7 @@ public class Template {
 	 * @param out The output stream that the processed template will be pushed to.
 	 * @param globals A Map of global properties you want available to the template
 	 */
-	public void parse(File template, Writer out, Map<String, Object> globals)
+	public void parse(File template, OutputStream out, Map<String, Object> globals)
 		throws IOException {
 		
 		// Exists and is under template root?

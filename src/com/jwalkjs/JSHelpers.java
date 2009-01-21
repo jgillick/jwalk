@@ -11,6 +11,7 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.NativeJavaObject;
 
 public class JSHelpers {
 	
@@ -47,21 +48,23 @@ public class JSHelpers {
 		if( args.length == 0 ){
 			return;
 		}
-		
-		// Convert data to String
+
+		// Convert to String
 		String content;
-		if( args[0] instanceof String){
-			content = (String)args[0];
-		}
-		else{
-			content = args[0].toString(); 
-		}
+		content = (String)Context.jsToJava((Object)args[0], String.class);
 		
-		// Get writer and output
+		// Get writer and output		
 		try { 
-			Writer out = (Writer) getAssociatedValue(scope, "output_writer");
+			OutputStream out = (OutputStream) getAssociatedValue(scope, "output_writer");
 			if( out != null ){
-				out.write(content);
+				
+				if( out instanceof PrintStream){
+					((PrintStream) out).println(content);
+				}
+				else{
+					out.write(content.getBytes());
+				}
+				out.flush();
 			}
 		} catch (IOException ex){
 			throw new Exception("Could not find or access the output writer.");

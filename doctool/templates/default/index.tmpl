@@ -12,7 +12,7 @@
 		var objs = global.getChildren(4);
 		
 		for( var i = 0, len = objs.length; i < len; i++){
-			print("<li><strong>"+ objs[i].name +"</strong>: "+ objs[i].description +"</li>");
+			print("<li><strong>"+ objs[i].name +"</strong>"+ objs[i].description +"</li>");
 		}
 	%>
 	</ul>
@@ -43,11 +43,13 @@
 	<ul>
 	<%
 		var objs = global.getChildren(3);
-		
-		for( var i = 0, len = objs.length; i < len; i++){
-			print("<li><strong>"+ objs[i].name +"</strong>: "+ objs[i].description +"</li>");
-		}
-	%>
+		for( var i = 0, len = objs.length; i < len; i++) {	%>
+			<li>
+				<strong><%= objs[i].name %></strong>
+				<em><%= objs[i].type.name %></em>
+				<%= objs[i].description %>
+			</li>
+	<% } %>
 	</ul>
 	
 	<h2>Properties</h2>

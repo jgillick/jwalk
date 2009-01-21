@@ -85,6 +85,7 @@ var DefaultParser = {
 			switch( tag.name ){
 			case null:
 				doc.description = body;
+				doc.lineno = 1;
 				break;
 			case "param":
 			case "return":
@@ -102,7 +103,7 @@ var DefaultParser = {
 				if( tag.name == "param" ){
 						
 					// Get name and description
-					var param = { datatype: type }
+					var param = { type: type }
 					body = body.match(/^([^\s]+)\s*(.*)$/); // from: @param {TYPE} NAME DESCRIPTION....
 					if( body == null ){
 						continue;
@@ -113,8 +114,8 @@ var DefaultParser = {
 					doc.setParam(param)
 				}
 				else {
-					doc.returns = { datatype: type, 
-									desc: body };
+					doc.type = { name: type, 
+								desc: body };
 				}
 				
 				break;

@@ -21,7 +21,7 @@ public class ElementMeta {
 	public int lineno = -1;
 	public int linepos = -1;
 	
-	public String returns = "unknown";
+	public Scriptable type;
 	public String description = "";
 	public String short_description = "";
 
@@ -42,24 +42,29 @@ public class ElementMeta {
 		this.lineno = elem.lineno;
 		this.linepos = elem.start;
 		
-		// Datatype to String
+		// Datatype to JSON object: { type: "string", desc: "..." };
+		String type = "unknown";
 		switch(elem.getDatatype()){
 		case Element.TYPE_NULL:
-			this.returns = "null";
+			type = "null";
 			break;
 		case Element.TYPE_STRING:
-			this.returns = "string";
+			type = "string";
 			break;
 		case Element.TYPE_NUMBER:
-			this.returns = "number";
+			type = "number";
 			break;
 		case Element.TYPE_BOOLEAN:
-			this.returns = "boolean";
+			type = "boolean";
 			break;
 		case Element.TYPE_REGEXP:
-			this.returns = "regexp";
+			type = "regexp";
 			break;
 		}
+		
+		this.type = cx.newObject(scope);
+		this.type.put("name", this.type, type);
+		this.type.put("desc", this.type, "");
 		
 		// Create Params
 		params = new Hashtable<String,Scriptable>();
@@ -80,10 +85,10 @@ public class ElementMeta {
 	}
 	
 	/**
-	 * Returns the type of element this is.
+	 * Returns the symbol type of element this is.
 	 * i.e. function, variable, object, etc.
 	 */
-	public String getType(){
+	public String getSymbol(){
 
 		// Element type
 		switch(this.element.type){
@@ -112,7 +117,7 @@ public class ElementMeta {
 	/**
 	 * Sets a function parameter definition
 	 * @param definition A JSON definition for this parameter.  
-	 * 					Should include 'name', 'datatype', 'desc' and 'short_desc"
+	 * 					Should include 'name', 'type', 'desc' and 'short_desc"
 	 */
 	public void setParam(Scriptable definition){
 		String name = (String)definition.get("name", definition); 
@@ -148,8 +153,7 @@ public class ElementMeta {
 	 * This is really only appilcable for Objects, Functions and Methods
 	 */
 	public Object getChildren(){
-		Element[] children = this.element.getChildren();
-		return Context.javaToJS(children, this.scope);
+		return getChildren(0);
 	}
 	
 	/**
@@ -158,20 +162,18 @@ public class ElementMeta {
 	 * This is really only appilcable for Objects, Functions and Methods
 	 * @param type The element type FUNCTION, VARIABLE, OBJECT etc.
 	 */
-	public Object getChildren(int type){
-		Element[] children = this.element.getChildren();
-		ArrayList<Element> subset = new ArrayList<Element>();
+	public Object getChildren(int symbol){
+		ArrayList<ElementMeta> children = new ArrayList<ElementMeta>();
 		
-		// Find all the children that match the type
-		if( type >= FUNCTION  && type <= METHOD){
-			for( int i = 0; i < children.length; i++ ){
-				if( children[i].type == type){
-					subset.add(children[i]);
-				}
+		Element child;
+		for( int i = 0; i < element.children.size(); i++ ){
+			child = element.children.get(i);
+			if( symbol == 0 || (symbol >= FUNCTION  && symbol <= METHOD && child.type == symbol) ){
+				children.add(child.doc);
 			}
 		}
 		
-		return Context.javaToJS(subset.toArray(), this.scope);
+		return Context.javaToJS(children.toArray(), this.scope);
 	}
 	
 	/**
