@@ -7,7 +7,7 @@ import org.mozilla.javascript.*;
 public class DocTool {
 
 	private static Context cx;
-	private static Scriptable scope;
+	private static ScriptableObject scope;
 	private static File appDir;
 
 	public static void main(String[] args)
@@ -131,11 +131,10 @@ public class DocTool {
 
 		cx = (new ContextFactory()).enterContext();
 		scope = cx.initStandardObjects();
-		
+
 		// Add helper JS methods
-		ScriptableObject.defineClass(scope, ParserHelpers.class);
-		Scriptable helpers = cx.newObject(scope, "ParserHelpers", new Object[0]);
-		scope.put("jwalk", scope, helpers);
+		JSHelpers.load(scope);
+		scope.associateValue("output_writer", System.out);
 		
 		cx.evaluateReader(scope, new FileReader(path), path, 1, null);
 	}

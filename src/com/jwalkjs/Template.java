@@ -106,8 +106,7 @@ public class Template {
 		
 		// JS Environment
 		scope = cx.initStandardObjects();
-		String[] jshelpers = { "print" };
-		scope.defineFunctionProperties(jshelpers, Template.class, ScriptableObject.DONTENUM);
+		JSHelpers.load(scope);
 		
 		// Add globals
 		if( globals != null && globals.size() > 0){
@@ -259,31 +258,6 @@ public class Template {
 		code = code.replaceAll("\n", "\"+\n\""); // Convert '\n' to '"+\n"'
 		
 		return code;
-	}
-	
-		
-	/**
-	 * A JavaScript helper that prints to the output writer
-	 */
-	public static void print(Context cx, Scriptable thisObj, Object[] args, Function funObj) 
-		throws Exception{
-		
-		// Content to print
-		if( args.length == 0 ){
-			return;
-		}
-		String content =  (String)args[0];
-		
-		// Get writer and output
-		try {
-			if (thisObj instanceof ScriptableObject) {
-				Writer out = (Writer) ( (ScriptableObject) thisObj ).getAssociatedValue("output_writer");
-				out.write(content);
-			}
-		} catch (IOException ex){
-			throw new Exception("Could not find or access the output writer.");
-		}
-		
 	}
 	
 }

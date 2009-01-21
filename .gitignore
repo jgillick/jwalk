@@ -6,3 +6,6 @@
 build/
 js.jar
 jwalk.jar
+
+# Output directory for testing
+doctool/out/
