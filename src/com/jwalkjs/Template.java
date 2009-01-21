@@ -106,6 +106,9 @@ public class Template {
 		
 		// JS Environment
 		scope = cx.initStandardObjects();
+		scope.associateValue("template", this);
+		scope.associateValue("doc_root", tmplRoot.getCanonicalPath());
+		scope.associateValue("output_writer", out);
 		JSHelpers.load(scope);
 		
 		// Add globals
@@ -122,7 +125,6 @@ public class Template {
 		}
 		
 		// Convert and execute
-		scope.associateValue("output_writer", out);
 		String tmplJS = convertTemplate(contents.toString());
 		cx.evaluateString(scope, tmplJS, template.getPath(), 1, null);
 		
@@ -133,7 +135,7 @@ public class Template {
 	/**
 	 * Convert the template file into JavaScript code that can be executed by Rhino
 	 */
-	private String convertTemplate(String template){
+	public String convertTemplate(String template){
 		StringBuilder js = new StringBuilder();
 		
 		int tmplLen, endLen, cursor;
