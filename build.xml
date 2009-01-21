@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="JWalk" default="jar">
 
-	<property name="jwalk.dist" location="../" />
+	<property name="jwalk.dist" location="." />
+	<property name="jwalk.lib" location="${jwalk.dist}/lib/" />
 
-	<property name="rhino.dir" location="rhino/" />
+	<property name="rhino.dir" location="src/rhino/" />
 	<property name="rhino.ant" location="${rhino.dir}/build.xml" />
-	<property name="rhino.jar" location="${jwalk.dist}/js.jar" />
 
-	<property name="jste.src" location="jste/template/" />
-
-	<property name="jwalk.src" location="com/jwalk/" />
-	<property name="jwalk.build" location="build/" />
+	<property name="jwalk.src" location="src/com/jwalkjs" />
+	<property name="jwalk.build" location="${jwalk.dist}/build/" />
 	<property name="jwalk.jar" value="${jwalk.dist}/jwalk.jar" />
 
 	<!-- Compile the JWalk Classes (includes Rhino and JSTE) -->
@@ -21,10 +19,9 @@
 		<ant antfile="${rhino.ant}" dir="${rhino.dir}" target="compile">
 			<property name="classes" location="${jwalk.build}"/>
 		</ant>
-
-		<!-- Build JSTE -->
-		<javac srcdir="${jste.src}" destdir="${jwalk.build}">
-		</javac>
+		<ant antfile="${rhino.ant}" dir="${rhino.dir}" target="jar">
+			<property name="dist.dir" location="${jwalk.lib}"/>
+		</ant>
 
 		<!-- Compile JWalk -->
 		<javac srcdir="${jwalk.src}" destdir="${jwalk.build}">
@@ -36,7 +33,7 @@
 		<jar jarfile="${jwalk.jar}"
 			basedir="${jwalk.build}"
 			compress="true"
-			manifest="manifest"
+			manifest="${jwalk.src}/manifest"
 		/>
 	</target>
 

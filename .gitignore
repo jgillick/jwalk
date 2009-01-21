@@ -1,0 +1,8 @@
+# files starting with '.'
+.*
+!.gitignore # except for .gitignore
+
+# Don't store compiled files
+build/
+js.jar
+jwalk.jar
