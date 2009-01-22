@@ -25,7 +25,7 @@ public final class JWalkParser {
 	public static void main(String[] args){
 		try{
 			debug = 0x1000;
-			Element root = parseFile(args[0], true);
+			ScriptFile script = parseFile(args[0], true);
 			//printTree(root, 0);
 		} catch(Exception e){
 			System.out.println(e.toString());
@@ -37,37 +37,29 @@ public final class JWalkParser {
 	 * @param path The file path to the JS file
 	 * @param incComments Extract comments from the source
 	 */
-	public static Element parseFile(String path, boolean incComments)
+	public static ScriptFile parseFile(String path, boolean incComments)
 		throws java.io.FileNotFoundException, java.io.IOException {
 
 		comments = null;
 
 		// Init JS playground
-		ContextFactory cxf = new ContextFactory();
-		Context cx = cxf.enterContext();
+		Context cx = (new ContextFactory()).enterContext();
 		CompilerEnvirons env = new CompilerEnvirons();
 
 		// Read source code
-		String sourceURI = path;
-		String source = "";
-		String line;
-		BufferedReader reader = new BufferedReader(new FileReader(sourceURI));
-		while((line = reader.readLine()) != null){
-			source += line +"\n";
-		}
-		sourceLength = source.length();
+		ScriptFile sourceFile = new ScriptFile(path);
+		sourceLength = sourceFile.source.length();
 
 		// Parse
 		ErrorReporter errorReporter = env.getErrorReporter();
 		Parser parser = new Parser(env, errorReporter);
+		ScriptOrFnNode root = parser.parse(sourceFile.source, path, 1);
 
-		ScriptOrFnNode root = parser.parse(source, sourceURI, 1);
 		Element global = new Element(root, null, Element.ROOT);
+		global.script = sourceFile;
 		global.name = "[global]";
 		global.top = global;
-		global.allComments = new ArrayList();
-		global.sourcePath = sourceURI;
-		global.sourceName = (new File(sourceURI)).getName();
+
 
 		if((debug & 0x0001) != 0){
 			System.out.println(root.toStringTree(root));
@@ -79,16 +71,20 @@ public final class JWalkParser {
 		if(incComments){
 			comments = new ArrayList();
 			allElements = global.getAllChildren();
-			TokenStream ts = new TokenStream(parser, null, source, 1);
-			readComments(global, ts, source, parser.getEncodedSource());
-			global.allComments = comments;
+			TokenStream ts = new TokenStream(parser, null, sourceFile.source, 1);
+			readComments(global, ts, sourceFile.source, parser.getEncodedSource());
+
+			sourceFile.comments = comments;
 		}
 
+		sourceFile.global = global;
+		sourceFile.comments = comments;
+
 		Context.exit();
-		return global;
+		return sourceFile;
 	}
 
-	public static Element parseFile(String path)
+	public static ScriptFile parseFile(String path)
 		throws java.io.FileNotFoundException, java.io.IOException {
 		return parseFile(path, false);
 	}

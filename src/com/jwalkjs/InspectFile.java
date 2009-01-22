@@ -143,7 +143,8 @@ public class InspectFile implements FilenameFilter {
 			}
 
 			currentFile = file;
-			Element elem = JWalkParser.parseFile(path);
+			ScriptFile script = JWalkParser.parseFile(path);
+			Element elem = script.global;
 			Element[] children = elem.getChildren();
 
 			if(format != "csv"){

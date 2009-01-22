@@ -22,7 +22,8 @@ public class PrintTree implements FilenameFilter {
 			return;
 		}
 
-		Element elem = JWalkParser.parseFile(path);
+		ScriptFile script = JWalkParser.parseFile(path);
+		Element elem = script.global;
 		printTree(elem);
 	}
 

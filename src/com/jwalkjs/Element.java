@@ -38,6 +38,7 @@ public class Element implements Comparable {
 	public Element top;
 	public Element scope;
 	public Element parent;
+	public ScriptFile script;
 
 	public Element previousSibling;
 	public Element nextSibling;
@@ -49,13 +50,8 @@ public class Element implements Comparable {
 	public Element firstChild;
 	public Element lastChild;
 
-	protected ArrayList<Comment> allComments = null;
-
-	public String sourceName = null;
-	public String sourcePath = null;
-
 	public boolean is_private = false;
-	public ElementMeta doc = null;
+	public ElementDoc doc = null;
 
 	// Variable properties
 	public boolean read_only = false;
@@ -90,6 +86,8 @@ public class Element implements Comparable {
 		if(parent != null){
 			this.top = parent.top;
 		}
+
+		this.script = this.top.script;
 	}
 
 	/**
@@ -100,7 +98,8 @@ public class Element implements Comparable {
 		if(this.top != this){
 			return this.top.getAllComments();
 		}
-		return allComments.toArray(new Comment[allComments.size()]);
+
+		return script.comments.toArray( new Comment[script.comments.size()] );
 	}
 
 	/**

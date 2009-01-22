@@ -12,7 +12,7 @@ public class DocTool {
 
 	public static void main(String[] args)
 		throws Exception{
-	
+
 		appDir = new File(System.getProperty("java.class.path"));
 		appDir = appDir.getParentFile().getCanonicalFile();
 
@@ -63,34 +63,35 @@ public class DocTool {
 		loadJS(parserFile.getPath());
 		Scriptable docparser = (Scriptable) scope.get("DocParser", scope);
 		Function parserFunc = (Function) ScriptableObject.getProperty(docparser, "parseElement");
-		
+
 		// Parser all JS source files and run them through the doc parser
 		ArrayList<Element> parsed = new ArrayList();
-		ElementMeta globalDoc;
+		ElementDoc globalDoc;
 		for(int i = 0; i < sources.size(); i++){
-			Element global = JWalkParser.parseFile(sources.get(i), true);
-			globalDoc = new ElementMeta(cx, scope, global);
+			ScriptFile script = JWalkParser.parseFile(sources.get(i), true);
+			Element global = script.global;
+			globalDoc = new ElementDoc(cx, scope, global);
 			Element[] elements = global.getAllChildren();
-			
+
 			// Call parser object for each JS element in the source
 			Element elem;
-			ElementMeta doc;
+			ElementDoc doc;
 			for(int n = 0; n < elements.length; n++){
 				elem = elements[n];
-				doc = new ElementMeta(cx, scope, elem);  // Create a scriptable document object
-				
+				doc = new ElementDoc(cx, scope, elem);  // Create a scriptable document object
+
 				parserFunc.call(cx, scope, docparser, new Object[]{ doc, elem });
 			}
 
 			parsed.add(global);
-		
+
 			// Load template engine
 			Map<String, Object> globals = new HashMap<String, Object>();
 			globals.put("elements", globalDoc);;
 			Template templates = new Template( appDir.getPath() +"/doctool/templates/default/" );
 			templates.parse("index.tmpl", appDir.getPath() +"/doctool/out/index.html", globals);
 		}
-		
+
 		Context.exit();
 	}
 
@@ -112,10 +113,10 @@ public class DocTool {
 
 		System.out.println(out.toString());
 	}
-	
-	
+
+
 	/**
-	 * Load a JS file and return the first object 
+	 * Load a JS file and return the first object
 	 */
 	private static void loadJS(String path)
 		throws Exception {
@@ -126,8 +127,8 @@ public class DocTool {
 		// Add helper JS methods
 		JSHelpers.load(scope);
 		scope.associateValue("output_writer", System.out);
-		
+
 		cx.evaluateReader(scope, new FileReader(path), path, 1, null);
 	}
-	
+
 }
