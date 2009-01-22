@@ -7,7 +7,7 @@ const GLOB_CONST = 0;
 
 /**
  * This is a plain function that doesn't do a whole lot
- * @param {Variant} attr1 This parameter doesn't do much 
+ * @param {Variant} attr1 This parameter doesn't do much
  * @param {Variant }attr2 This parameter does even less than the first.
  */
 function plainFunc(attr1, attr2){
@@ -26,7 +26,7 @@ function objFunc(){
 
 	/**
 	 * Nothing to see here, just another [implicit] global variable.
-	 * 
+	 *
 	 * Implicit global variables are EVIL.
 	 */
 	globalVar5 = "move me to global scope";
@@ -86,7 +86,7 @@ objFunc.prototype = {
 	protoFunc : function(){
 
 	},
-	
+
 	/**
 	 * This property has a personality disorder, and sometimes multiple personalities
 	 */
@@ -111,13 +111,13 @@ core.team = {};
 core.team.flow = {};
 
 /**
- * This is the Core Team Flow feature object, of course.  
+ * This is the Core Team Flow feature object, of course.
  * What more do you want to know?
  */
 core.team.flow.feature = function(){};
 core.team.flow.feature.prototype = {
 	state : null,
-	
+
 	/**
 	 * Just like cowbells, we need more modals
 	 */
@@ -171,7 +171,7 @@ function echo(str, number, multiplier){
 /**
  * An object following Crockfords module pattern.
  */
-var staticObj = (function() {
+var staticObj = function() {
 
 	var privateMember = "foo";
 
@@ -180,7 +180,7 @@ var staticObj = (function() {
 		fooYou : "bar baz",
 		fooWorld : function(){ }
 	}
-})();
+}();
 
 var functionVar = function(){
 

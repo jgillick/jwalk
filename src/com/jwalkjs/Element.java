@@ -25,6 +25,7 @@ public class Element implements Comparable {
 	static final int TYPE_NUMBER	= 13;
 	static final int TYPE_BOOLEAN	= 14;
 	static final int TYPE_REGEXP	= 15;
+	//static final int TYPE_OBJLIT	= 16;
 	static final int TYPE_UNKNOWN	= -100;
 
 	// Global properties
@@ -87,7 +88,9 @@ public class Element implements Comparable {
 			this.top = parent.top;
 		}
 
-		this.script = this.top.script;
+		if(this.top != null){
+			this.script = this.top.script;
+		}
 	}
 
 	/**
@@ -280,6 +283,9 @@ public class Element implements Comparable {
 			case Token.REGEXP:
 				type = TYPE_REGEXP;
 				break;
+			/*case Token.OBJECTLIT:
+				type = TYPE_OBJLIT;
+				break;*/
 			default:
 				type = TYPE_UNKNOWN;
 		}

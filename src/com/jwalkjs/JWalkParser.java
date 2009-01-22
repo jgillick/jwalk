@@ -13,6 +13,12 @@ public final class JWalkParser {
 	private final static int CONTINUE = 20;
 	private final static int SKIP_CHILDREN = 21;
 
+	/**
+	 * Set the debugging level for development
+	 * 0x0001 - Calls toStringTree on the root node (Token.printTrees needs to be TRUE)
+	 * 0x0010 - Prints the description for each node
+	 * 0x1000 - Debug where comments are
+	 */
 	private static int debug = 0x0000;
 	private static int indent = 0;
 
@@ -24,9 +30,9 @@ public final class JWalkParser {
 
 	public static void main(String[] args){
 		try{
-			debug = 0x1000;
+			debug = 0x0010;
 			ScriptFile script = parseFile(args[0], true);
-			//printTree(root, 0);
+			//printTree(script.global, 0);
 		} catch(Exception e){
 			System.out.println(e.toString());
 		}
@@ -90,7 +96,7 @@ public final class JWalkParser {
 	}
 
 	/**
-	 * Print the tree to the screen
+	 * Print the tree to the screen -- used for debugging
 	 * @param root The element to start from
 	 */
 	public static void printTree(Element elem){
@@ -98,7 +104,7 @@ public final class JWalkParser {
 	}
 
 	/**
-	 * Print the tree to the screen
+	 * Print the tree to the screen -- used for debugging
 	 * @param root The element to print the children of
 	 * @param level The level of the heirarchy we're in
 	 */
@@ -337,137 +343,6 @@ public final class JWalkParser {
 	}
 
 	/**
-	 * Get the width of the token command or zero if it's unknown.
-	 * @param token
-	 */
-	private static int getTokenWidth(int token){
-		switch(token){
-	        case Token.NAME:
-	        case Token.REGEXP:
-	        case Token.STRING:
-	        	/*++i;
-				length = enc.charAt(i);
-				++i;
-		        if ((0x8000 & length) != 0) {
-		            length = ((0x7FFF & length) << 16) | enc.charAt(i);
-		        }
-		        --i;
-		        break;*/
-	        	return 0;
-	        case Token.NUMBER:
-				/*++i;
-				int type = enc.charAt(i);
-				if (type == 'S') { // single byte?
-					++i;
-				}else if(type == 'J' || type == 'D'){ // double-byte?
-					i += 4;
-				}
-				break;*/
-	            return 0;
-
-	        case Token.COMMA:
-	        case Token.LC:
-	        case Token.RC:
-	        case Token.LP:
-	        case Token.RP:
-	        case Token.LB:
-	        case Token.RB:
-	        case Token.EOL:
-	        case Token.DOT:
-	        case Token.SEMI:
-	        case Token.ASSIGN:
-	        case Token.HOOK:
-	        case Token.OBJECTLIT:
-	        case Token.COLON:
-	        case Token.BITOR:
-	        case Token.BITXOR:
-	        case Token.BITAND:
-	        case Token.LT:
-	        case Token.GT:
-	        case Token.NOT:
-	        case Token.BITNOT:
-	        case Token.POS:
-	        case Token.NEG:
-	        case Token.ADD:
-	        case Token.SUB:
-	        case Token.MUL:
-	        case Token.DIV:
-	        case Token.MOD:
-	        case Token.XMLATTR:
-	            return 1;
-	        case Token.IF:
-	        case Token.IN:
-	        case Token.DO:
-	        case Token.ASSIGN_ADD:
-	        case Token.ASSIGN_SUB:
-	        case Token.ASSIGN_MUL:
-	        case Token.ASSIGN_DIV:
-	        case Token.ASSIGN_MOD:
-	        case Token.ASSIGN_BITOR:
-	        case Token.ASSIGN_BITXOR:
-	        case Token.ASSIGN_BITAND:
-	        case Token.OR:
-	        case Token.AND:
-	        case Token.EQ:
-	        case Token.NE:
-	        case Token.LE:
-	        case Token.GE:
-	        case Token.LSH:
-	        case Token.RSH:
-	        case Token.INC:
-	        case Token.DEC:
-	        case Token.COLONCOLON:
-	        case Token.DOTDOT:
-	        case Token.DOTQUERY:
-	            return 2;
-			case Token.GET:
-	        case Token.SET:
-	        case Token.NEW:
-	        case Token.FOR:
-	        case Token.TRY:
-	        case Token.VAR:
-	        case Token.LET:
-	        case Token.ASSIGN_LSH:
-	        case Token.ASSIGN_RSH:
-	        case Token.SHEQ:
-	        case Token.SHNE:
-	        case Token.URSH:
-	            return 3;
-	        case Token.TRUE:
-	        case Token.NULL:
-	        case Token.THIS:
-	        case Token.ELSE:
-	        case Token.WITH:
-	        case Token.CASE:
-	        case Token.ASSIGN_URSH:
-	        case Token.VOID:
-	            return 4;
-	        case Token.FALSE:
-	        case Token.WHILE:
-	        case Token.CATCH:
-	        case Token.THROW:
-	        case Token.BREAK:
-	        case Token.CONST:
-	        case Token.YIELD:
-	            return 5;
-	        case Token.SWITCH:
-	        case Token.RETURN:
-	        case Token.TYPEOF:
-	            return 6;
-	        case Token.DELPROP:
-	        case Token.FINALLY:
-	        case Token.DEFAULT:
-	        	return 7;
-	        case Token.FUNCTION:
-	        case Token.CONTINUE:
-	            return 8;
-	        case Token.INSTANCEOF:
-	        	return 10;
-		}
-		return 0;
-	}
-
-	/**
 	 * Get the index for the next node type in the encoded source
 	 * @param encSource
 	 * @param nodeType
@@ -550,7 +425,6 @@ public final class JWalkParser {
 	 * Parse variable node
 	 * @param node
 	 * @param scope The function scope this node is in.
-	 * @return
 	 */
 	private static int parseVariable(Node node, Element scope){
 		return parseVariable(node, node, null, scope);
@@ -561,7 +435,6 @@ public final class JWalkParser {
 	 * @param node
 	 * @param origNode The original node that started this statement
 	 * @param scope The function scope this node is in.
-	 * @return
 	 */
 	private static int parseVariable(Node node, Node origNode, Element scope){
 		return parseVariable(node, origNode, null, scope);
@@ -571,9 +444,8 @@ public final class JWalkParser {
 	 * Parse variable node
 	 * @param node
 	 * @param origNode The original node that started this statement
-	 * @param attachTo Build the variable on this element instead of a new one.
+	 * @param attachTo Build the variable on this element instead of creating a new one.
 	 * @param scope The function scope this node is in.
-	 * @return
 	 */
 	private static int parseVariable(Node node, Node origNode, Element attachTo, Element scope){
 		int type = node.getType();
@@ -661,7 +533,7 @@ public final class JWalkParser {
 					}
 					break;
 
-				// The return value of a function call
+				// The return value of a function call: var foo = helloWorld();
 				case Token.CALL:
 					if(grandChild.getType() == Token.FUNCTION){
 
@@ -669,21 +541,16 @@ public final class JWalkParser {
 						Element callFunc = new Element(origNode, scope, Element.TOKEN);
 						parseFunction(grandChild, callFunc, scope);
 
-						int retType = callFunc.getDatatype();
-						if(retType > -100){
-							elem.addDatatype(retType);
+						// Merge properties and functions variables into this variable and mark it as an object
+						if(callFunc.objReturns.size() == 1){
+							Element objLit = (Element)callFunc.objReturns.get(0);
 
-							// Merge properties and functions variables into this variable and mark it as an object
-							if(retType == Token.OBJECTLIT && callFunc.objReturns.size() == 1){
-								Element objLit = (Element)callFunc.objReturns.get(0);
+							elem.type = Element.OBJ;
+							elem.addChildren(callFunc.children, false);
+							elem.addChildren(objLit.children, true);
 
-								elem.type = Element.OBJ;
-								elem.addChildren(callFunc.children, false);
-								elem.addChildren(objLit.children, true);
-
-								objLit = null;
-								callFunc = null;
-							}
+							objLit = null;
+							callFunc = null;
 						}
 					}
 					break;
@@ -844,7 +711,6 @@ public final class JWalkParser {
 					Element retElem = new Element(node, scope, Element.OBJ);
 					parseObjectLiteral(sibling, retElem, scope);
 					scope.objReturns.add(retElem);
-
 					break;
 			}
 
@@ -876,7 +742,7 @@ public final class JWalkParser {
 			if(childType != Token.THIS && scope != scope.top){
 				return CONTINUE;
 			}
-;
+
 			// Scope
 			Element parent = scope;
 			if(childType == Token.NAME){
