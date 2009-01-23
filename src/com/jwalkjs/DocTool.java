@@ -1,8 +1,17 @@
 package com.jwalkjs;
 
-import java.io.*;
-import java.util.*;
-import org.mozilla.javascript.*;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.cli.*;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 public class DocTool {
 
@@ -16,6 +25,10 @@ public class DocTool {
 		appDir = new File(System.getProperty("java.class.path"));
 		appDir = appDir.getParentFile().getCanonicalFile();
 
+		// Parse arguments
+		parseArguments(args);
+		if(true)return;
+
 		if(args.length == 0 || args[0].equals("-help")){
 			printUsage();
 			return;
@@ -26,22 +39,20 @@ public class DocTool {
 		File output = null;
 		ArrayList<String> sources = new ArrayList();
 
-		// Parse arguments
+
 		String arg = "";
-		String argSet = "";
 		for(int i = 0; i < args.length; i++){
 			arg = args[i];
 
-			if(arg.equals("-s")){
-				argSet = arg;
-			} else if(arg.equals("-o")){
-				argSet = "";
+			if(arg.equals("-o")){
+
+				arg = args[ i + 1 ];
 				output = new File(arg);
-				if(output.exists() && output.isDirectory()){
+				if( output.exists() && !output.isDirectory() ){
 					System.out.println("'"+ arg +"' is not a directory");
 					return;
 				}
-			} else if(argSet.equals("-s")){
+			} else {
 				File source = new File(arg);
 				if(source.exists()){
 					sources.add(arg);
@@ -96,20 +107,27 @@ public class DocTool {
 	}
 
 	/**
+	 * Parse the command line arguments
+	 * @throws ParseException
+	 */
+	private static boolean parseArguments(String[] args) {
+
+	}
+
+	/**
 	 * Print the command line usage for this class
 	 */
 	private static void printUsage(){
 		StringBuffer out = new StringBuffer();
 
 		out.append("Generates documentation from your JavaScript source files.\n\n");
-		out.append("usage: jwalk doc [options] -o path -s path [path...path] [-e path...path]\n");
-		out.append("    -list   : Lists all document parsers and templates that are\n");
-		out.append("              loaded in the doctool directory\n");
-		out.append("    -parser : The doc parser name or file.\n");
-		out.append("    -tmpl   : The template set name or directory path.\n");
+		out.append("usage: jwalk doc [options] -o path path [path...path]\n");
+		//out.append("    -list   : Lists all document parsers and templates that are\n");
+		//out.append("              loaded in the doctool directory\n");
+		//out.append("    -parser : The doc parser name or file.\n");
+		//out.append("    -tmpl   : The template set name or directory path.\n");
 		out.append("    -o      : The output directory.\n");
-		out.append("    -s      : The source files and directories.\n");
-		out.append("    -e      : Files and directories to exclude.\n");
+		out.append("    <path>  : The source file or directory.\n");
 
 		System.out.println(out.toString());
 	}
