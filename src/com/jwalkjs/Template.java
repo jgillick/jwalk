@@ -51,10 +51,21 @@ public class Template {
 	}
 	
 	/**
-	 * Find and run the 'templates.js' file in the root template directory.
+	 * Find and run the template dispatch script in the root template directory.
+	 * The dispatch script is a JavaScript file (by default 'templates.js') that handles how to generate the templates.
 	 * @param out The output directory to save the files to
 	 */
-	public void run( String out ){
+	public void dispath( String out ){
+		dispath( "templates.js", out );
+	}
+	
+	/**
+	 * Find and run the template dispatch script in the root template directory.
+	 * The dispatch script is a JavaScript file (by default 'templates.js') that handles how to generate the templates.
+	 * @param scriptName The dispatch script name
+	 * @param out The output directory to save the files to
+	 */
+	public void dispath( String scriptName, String out ){
 		
 	}
 	
