@@ -8,87 +8,109 @@ import org.mozilla.javascript.*;
  * A simple JavaScipt templating system
  */
 public class Template {
-	
+
 	private File tmplRoot;
 	private Context cx;
 	private ScriptableObject scope;
-	
+
 	/**
 	 * The characters that start the executable code in the template file
 	 */
 	public String startTag = "<%";
-	
+
 	/**
 	 * The characters that end the executable code in the template file
 	 */
 	public String endTag = "%>";
-	
+
 	/**
 	 * Sets up the templating environment with a template root directory
 	 * @param templateRoot The root directory that all the template are included under.
 	 * 						This quarentines the scripts from including anything outside that directory.
 	 */
-	public Template(String templateRoot) 
-		throws FileNotFoundException {
+	public Template(String templateRoot) throws IOException {
 		this( new File(templateRoot) );
 	}
-	
+
 	/**
 	 * Sets up the templating environment with a template root directory
 	 * @param templateRoot The root directory that all the template are included under.
 	 * 						This quarentines the scripts from including anything outside that directory.
 	 */
-	public Template(File templateRoot) 
-		throws FileNotFoundException {
-		
+	public Template(File templateRoot) throws IOException {
+
 		// Template root exists?
 		if( !templateRoot.exists() ){
 			throw new FileNotFoundException("The template root '"+ tmplRoot.getPath() +"' doesn't exist.");
 		}
-		
-		tmplRoot = templateRoot;
+
+		tmplRoot = new File(templateRoot.getCanonicalPath());
 		cx = (new ContextFactory()).enterContext();
 	}
-	
+
 	/**
 	 * Find and run the template dispatch script in the root template directory.
 	 * The dispatch script is a JavaScript file (by default 'templates.js') that handles how to generate the templates.
 	 * @param out The output directory to save the files to
+	 * @param files The parsed and documented JavaScript files
 	 */
-	public void dispath( String out ){
-		dispath( "templates.js", out );
+	public void dispatch( String out, ScriptFile[] files ) throws Exception {
+		dispatch( "Templates.js", out, files );
 	}
-	
+
 	/**
 	 * Find and run the template dispatch script in the root template directory.
-	 * The dispatch script is a JavaScript file (by default 'templates.js') that handles how to generate the templates.
+	 * The dispatch script is a JavaScript file (by default 'Templates.js') that handles how to generate the templates.
 	 * @param scriptName The dispatch script name
 	 * @param out The output directory to save the files to
+	 * @param files The parsed and documented JavaScript files
 	 */
-	public void dispath( String scriptName, String out ){
-		
+	public void dispatch( String scriptName, String out, ScriptFile[] files ) throws Exception{
+
+		// Get dispatch file
+		File dispatch = new File(tmplRoot, scriptName);
+		if( !dispatch.exists() ){
+			throw new FileNotFoundException( "The template dispatch script '"+ scriptName +"', was not found in '"+ tmplRoot.getPath() +"'." );
+		}
+
+		// Setup environment
+		cx = (new ContextFactory()).enterContext();
+		scope = cx.initStandardObjects();
+
+		// Add helper JS methods
+		scope.associateValue("output_writer", System.out);
+		scope.associateValue("template", this);
+		scope.associateValue("doc_root", tmplRoot.getAbsolutePath());
+		JSHelpers.load(scope, new String[]{ "template" });
+
+		// Run dispatch script
+		cx.evaluateReader(scope, new FileReader(dispatch), dispatch.getAbsolutePath(), 1, null);
+
+		Scriptable tmplObj = (Scriptable) scope.get("Templates", scope);
+		Function tmplFunc = (Function) ScriptableObject.getProperty(tmplObj, "createTemplates");
+		tmplFunc.call(cx, scope, tmplObj, new Object[]{ files });
 	}
-	
+
 	/**
 	 * Parse a template file
 	 * @param template The path to a template file to process
-	 * 					This needs to exist under the 'templateRoot' path. 
+	 * 					This needs to exist under the 'templateRoot' path.
 	 * @param out The file to save the output to.  This path can exist anywhere
 	 * @param globals A Map of global properties you want available to the template
 	 */
 	public void parse(String template, String out, Map<String, Object> globals)
 		throws IOException {
-		
+
 		File tmplFile = new File(tmplRoot, template);
 		BufferedOutputStream fileOut = new BufferedOutputStream( new FileOutputStream( out ) );
 		parse( tmplFile, fileOut, globals );
 		fileOut.close();
 	}
-	
+
 	/**
 	 * Parse a template file
 	 * @param template The path to a template file to process
-	 * 					This needs to exist under the 'templateRoot' path. 
+	 * 					This needs to exist under the 'templateRoot' path.
 	 * @param out The file to save the output to.  This path can exist anywhere
 	 * @param globals A Map of global properties you want available to the template
 	 */
@@ -103,23 +125,23 @@ public class Template {
 	/**
 	 * Parse a template file
 	 * @param template The path to a template file to process
-	 * 					This needs to exist under the 'templateRoot' path. 
+	 * 					This needs to exist under the 'templateRoot' path.
 	 * @param out The output stream that the processed template will be pushed to.
 	 * @param globals A Map of global properties you want available to the template
 	 */
 	public void parse(File template, OutputStream out, Map<String, Object> globals)
 		throws IOException {
-		
+
 		// Exists and is under template root?
 		if( !template.exists() || tmplRoot.getCanonicalPath().indexOf( template.getParentFile().getCanonicalPath() ) == -1){
 			throw new FileNotFoundException("The file '"+ template.getPath() +"' does not exist in '"+ tmplRoot.getPath() +"'");
 		}
-		
+
 		// Read template file
 		StringBuilder contents = new StringBuilder();
 		BufferedReader input =  new BufferedReader( new FileReader(template) );
 		try{
-			String line; 
+			String line;
 			while (( line = input.readLine()) != null){
 	          contents.append(line);
 	          contents.append(System.getProperty("line.separator"));
@@ -127,14 +149,14 @@ public class Template {
 		} finally{
 			input.close();
 		}
-		
+
 		// JS Environment
 		scope = cx.initStandardObjects();
 		scope.associateValue("template", this);
-		scope.associateValue("doc_root", tmplRoot.getCanonicalPath());
+		scope.associateValue("doc_root", tmplRoot.getAbsolutePath());
 		scope.associateValue("output_writer", out);
 		JSHelpers.load(scope);
-		
+
 		// Add globals
 		if( globals != null && globals.size() > 0){
 			Object[] keys = globals.keySet().toArray();
@@ -143,78 +165,78 @@ public class Template {
 			for( int i = 0; i < keys.length; i++ ){
 				key = (String)keys[i];
 				value = Context.javaToJS( globals.get(key), scope );
-				
+
 				ScriptableObject.defineProperty(scope, key, value, 0);
 			}
 		}
-		
+
 		// Convert and execute
 		String tmplJS = convertTemplate(contents.toString());
 		cx.evaluateString(scope, tmplJS, template.getPath(), 1, null);
-		
+
 		out.flush();
 		out.close();
 	}
-	
+
 	/**
 	 * Convert the template file into JavaScript code that can be executed by Rhino
 	 */
 	public String convertTemplate(String template){
 		StringBuilder js = new StringBuilder();
-		
+
 		int tmplLen, endLen, cursor;
 		boolean inPrint, inComment, escaped;
 		char quote = 0, curr;
-		
+
 		// With each pass the process part of the template is removed until
 		// the entire template is consumed
 		while(template.length() > 0){
 			tmplLen = template.length();
 			inPrint = false;
 			inComment = false;
-			
+
 			// Find the next start tag
 			cursor = template.indexOf(startTag);
 			if( cursor > -1 ){
-				
+
 				// Print the content stuff
 				if( cursor > 0 ){
 					js.append( "print(\"" );
 					js.append( escape( template.substring(0, cursor) ) );
 					js.append( "\");" );
 				}
-				
+
 				cursor += startTag.length();
-				
+
 				// Special tag shorthands
 				switch( template.charAt(cursor) ){
 				case '=': // A printable statement: <%= 'foo' %>
-					js.append( "print(" ); 
+					js.append( "print(" );
 					inPrint = true;
 					cursor++;
 					break;
-				
+
 				case '#': // Comment statement: <%# Don't execute this -- ever %>
 					inComment = true;
 					cursor++;
 					break;
-					
+
 				default:
 					// No extensions present
 					inPrint = false;
 					inComment = false;
 				}
-				
+
 				// Find the end of the executable code, but ignore tags inside quotes
 				escaped = false;
 				quote = 0;
 				endLen = endTag.length();
 				for(; cursor < tmplLen; cursor++ ){
 					curr = template.charAt(cursor);
-										
+
 					// Quotes
 					if( curr == '\'' || curr == '"'){
-						
+
 						// Start quote
 						if( quote == 0 ){
 							quote = curr;
@@ -224,42 +246,42 @@ public class Template {
 							quote = 0;
 						}
 					}
-					
+
 					// Escape backslashes
 					escaped = ( curr == '\\' && !escaped);
-					
+
 
 					// Peek and the next few characters for the end tag
-					if ( quote == 0 
-							&& (cursor + endLen - 1) < tmplLen 
+					if ( quote == 0
+							&& (cursor + endLen - 1) < tmplLen
 							&& template.substring(cursor, cursor + endLen).equals( endTag ) ){
-						
-						// Finish the print 
+
+						// Finish the print
 						if( inPrint ){
-							js.append( ")" ); 
+							js.append( ")" );
 						}
 						js.append( ";" );
-						
+
 						// Cut the template down
 						cursor += endLen;
 						template = template.substring(cursor);
 						cursor = 0;
 						break;
 					}
-					
+
 					// Append character
 					else if( !inComment || curr == '\n'){
 						js.append(curr);
 					}
 				}
-				
+
 				// EOF
 				if( cursor >= tmplLen){
 					break;
 				}
-				
+
 			}
-			
+
 			// EOF -- place the rest in a print
 			else if( tmplLen > 0 ){
 				js.append( "print(\"" );
@@ -267,23 +289,23 @@ public class Template {
 				js.append( "\");" );
 				break;
 			}
-			
+
 		}
-		
-		
+
+
 		return js.toString();
 	}
-	
+
 	/**
 	 * Escape characters which will be quoted
 	 */
 	private String escape(String code){
 
-		code = code.replaceAll("\\\\", "\\\\"); // Convert '\' to '\\' 
+		code = code.replaceAll("\\\\", "\\\\"); // Convert '\' to '\\'
 		code = code.replaceAll("\"", "\\\""); // Convert '"' to '\"'
 		code = code.replaceAll("\n", "\"+\n\""); // Convert '\n' to '"+\n"'
-		
+
 		return code;
 	}
-	
+
 }

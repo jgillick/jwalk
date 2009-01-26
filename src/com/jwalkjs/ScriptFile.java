@@ -27,9 +27,9 @@ public class ScriptFile {
 	public String source = "";
 
 	/**
-	 * The 'virtual' global scope element for this script.
+	 * The 'virtual' global scope doc element for this script.
 	 */
-	public Element global = null;
+	public ElementDoc global = null;
 
 	/**
 	 * All the comments in the source code.
@@ -44,7 +44,7 @@ public class ScriptFile {
 	protected ScriptFile(String path) throws IOException{
 		this ( new File(path) );
 	}
-	
+
 	/**
 	 * Reads the contents of the source file
 	 * @param path The JavaScript file to read.

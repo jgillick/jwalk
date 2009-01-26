@@ -45,10 +45,10 @@ public final class JWalkParser {
 	 */
 	public static ScriptFile parseFile(String path, boolean incComments)
 		throws java.io.FileNotFoundException, java.io.IOException {
-		
+
 		return parseFile( new File(path), incComments );
 	}
-	
+
 	/**
 	 * Parse a JavaScript file and return an element tree
 	 * @param path The file path to the JS file
@@ -60,6 +60,8 @@ public final class JWalkParser {
 		comments = null;
 
 		// Init JS playground
+		Context cx = (new ContextFactory()).enterContext();
+		ScriptableObject scope = cx.initStandardObjects();
 		CompilerEnvirons env = new CompilerEnvirons();
 
 		// Read source code
@@ -93,7 +95,7 @@ public final class JWalkParser {
 			sourceFile.comments = comments;
 		}
 
-		sourceFile.global = global;
+		sourceFile.global = global.generateDocElement(cx, scope);
 		sourceFile.comments = comments;
 
 		Context.exit();

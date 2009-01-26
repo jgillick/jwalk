@@ -23,7 +23,7 @@ public class PrintTree implements FilenameFilter {
 		}
 
 		ScriptFile script = JWalkParser.parseFile(path);
-		Element elem = script.global;
+		Element elem = script.global.element;
 		printTree(elem);
 	}
 

@@ -31,7 +31,7 @@ public class ElementDoc {
 	/**
 	 * Extract the meta from the JS element into this ElementMeta object
 	 */
-	public ElementDoc(Scriptable scope, Element elem){
+	public ElementDoc(Context cx, Scriptable scope, Element elem){
 		this.scope = scope;
 		this.element = elem;
 		elem.doc = this;

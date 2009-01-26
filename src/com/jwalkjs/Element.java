@@ -92,15 +92,19 @@ public class Element implements Comparable {
 			this.script = this.top.script;
 		}
 	}
-	
+
 	/**
 	 * Generate the documentation element for this element
 	 * @param scope The current script scope
 	 */
-	public ElementDoc generateDocElement( Scriptable scope ){
-		return new ElementDoc( scope, this );
+	public ElementDoc generateDocElement(Context cx, Scriptable scope){
+		if( this.doc != null ){
+			return this.doc;
+		} else{
+			return new ElementDoc( cx, scope, this );
+		}
 	}
-	
+
 	/**
 	 * Destroy the documentation element
 	 */
