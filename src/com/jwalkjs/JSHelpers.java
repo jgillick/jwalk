@@ -87,7 +87,7 @@ public class JSHelpers {
 
 	/**
 	 * Includes and executes a JavaScript file
-	 * This requires 2 properties to be set by scope.associateValue
+	 * This requires 2 associated values to be set by scope.associateValue
 	 * 		- doc_root: The directory root where all the includable script files exist
 	 * 		- template: The Template instance or null
 	 */
@@ -131,5 +131,50 @@ public class JSHelpers {
 		// Execute
 		Script script = cx.compileString(src, file.getPath(), 0, null);
 		script.exec(cx, scope);
+	}
+
+	/**
+	 * Build and output a template file.
+	 * This requires 2 associated values to be set by scope.associateValue
+	 * 		- doc_root: The directory root where all the includable script files exist
+	 * 		- doc_out: The root directory for the template output
+	 *
+	 * The JS function params are:
+	 *   - tmpl: The template file path, relative to the doc_root
+	 *   - out: The output file path, relative to the output directory
+	 *   - vars: A hash array of variables you want included in the global scope to the template.
+	 *
+	 * Example:
+	 *   template("each-file.tmpl", "files.html", { 'files' : file, 'doc' : file.global });
+	 */
+	public static void template(Context cx, Scriptable scope, Object[] args, Function funObj) throws Exception{
+
+		if( args.length != 3 ){
+			throw new Exception("Wrong number of parameters passed for template(). This function requires 3 parameters.");
+		}
+
+		// Get parameters and values
+		String tmpl = (String)args[0];
+		String outPath = (String)args[1];
+		ScriptableObject vars = (ScriptableObject)args[2];
+
+		File outRoot = (File)getAssociatedValue(scope, "doc_out");
+		File outFile = new File(outRoot, outPath).getCanonicalFile();
+
+		// Validate directory
+		if( outFile.getPath().indexOf( outRoot.getPath() ) != 0){
+			throw new IOException("The file '"+ outPath +"' is not within '"+ outRoot.getPath() +"'.\n" +
+				"You cannot save files outside of the output directory!");
+		}
+
+		// Create directories
+		if( !outFile.getParentFile().exists() ){
+			outFile.getParentFile().mkdirs();
+		}
+
+		// Run template
+		Template template = (Template)getAssociatedValue(scope, "template");
+
+		template.parse(tmpl, outFile.getAbsolutePath(), vars);
 	}
 }

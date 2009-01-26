@@ -50,7 +50,11 @@ public class DocTool implements FileFilter {
 			loadDocParser();
 
 			// Parse all files
-			System.out.println("Parsing source files...");
+			if( sourceJS.isDirectory() ){
+				System.out.println("Parsing source files in '"+ sourceJS.getPath() +"/' ...");
+			} else {
+				System.out.println("Parsing '"+ sourceJS.getName() +"' ...");
+			}
 			ArrayList<ScriptFile> scripts = parseSourceFiles(sourceJS);
 
 			// Run comment parser on all files
@@ -59,7 +63,9 @@ public class DocTool implements FileFilter {
 
 			// Parse templates and output
 			System.out.println("Running templates...");
-			runTemplateEngine(scripts);
+			Template templates = new Template( templateSet );
+			templates.dispatch(outDir, scripts.toArray( new ScriptFile[ scripts.size() ] ) );
+			templates.close();
 
 			Context.exit();
 
@@ -133,13 +139,6 @@ public class DocTool implements FileFilter {
 	}
 
 	/**
-	 * Run the template engine
-	 */
-	private static void runTemplateEngine( ArrayList<ScriptFile> scripts ){
-
-	}
-
-	/**
 	 * Parse the command line arguments
 	 * @returns FALSE if program execution should exit after this method call.
 	 */
@@ -193,6 +192,7 @@ public class DocTool implements FileFilter {
 					return false;
 				}
 
+				i++;
 				commentParser = file;
 
 			} else if( arg.equals("--tmpl") || arg.equals("-t") ){
@@ -212,6 +212,7 @@ public class DocTool implements FileFilter {
 					return false;
 				}
 
+				i++;
 				templateSet = file;
 
 			} else if( arg.equals("--out") || arg.equals("-o") ){
@@ -232,6 +233,7 @@ public class DocTool implements FileFilter {
 					file.mkdirs();
 				}
 
+				i++;
 				outDir = file;
 
 			} else { // Source File
@@ -265,18 +267,18 @@ public class DocTool implements FileFilter {
 
 			if( !commentParser.exists() ){
 				System.err.println("The default comment parser 'default.js' does not exist in the " +
-						"doctool parsers directory '"+ parserDir.getAbsolutePath() +"'!");
+						"doctool parsers directory '"+ parserDir.getAbsolutePath() +"'");
 				return false;
 			}
 		}
 
 		// Default Template set
 		if( templateSet == null ){
-			templateSet = new File(tmplDir, "default.js");
+			templateSet = new File(tmplDir, "default");
 
 			if( !templateSet.exists() ){
 				System.err.println("The default template set 'default' does not exist in the " +
-						"doctool templates directory '"+ tmplDir.getAbsolutePath() +"'!");
+						"doctool templates directory '"+ tmplDir.getAbsolutePath() +"'");
 				return false;
 			}
 		}

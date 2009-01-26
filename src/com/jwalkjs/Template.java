@@ -2,6 +2,7 @@ package com.jwalkjs;
 
 import java.io.*;
 import java.util.*;
+
 import org.mozilla.javascript.*;
 
 /**
@@ -12,6 +13,7 @@ public class Template {
 	private File tmplRoot;
 	private Context cx;
 	private ScriptableObject scope;
+	private boolean debug = false;
 
 	/**
 	 * The characters that start the executable code in the template file
@@ -44,8 +46,15 @@ public class Template {
 			throw new FileNotFoundException("The template root '"+ tmplRoot.getPath() +"' doesn't exist.");
 		}
 
-		tmplRoot = new File(templateRoot.getCanonicalPath());
+		tmplRoot = new File(templateRoot.getCanonicalPath()); // need canonical path to do template file location checking -- don't let templates include a file from outside the tmplRoot
 		cx = (new ContextFactory()).enterContext();
+	}
+
+	/**
+	 * Close the template and all the scripting resources opened
+	 */
+	public void close(){
+		Context.exit();
 	}
 
 	/**
@@ -54,7 +63,7 @@ public class Template {
 	 * @param out The output directory to save the files to
 	 * @param files The parsed and documented JavaScript files
 	 */
-	public void dispatch( String out, ScriptFile[] files ) throws Exception {
+	public void dispatch( File out, ScriptFile[] files ) throws Exception {
 		dispatch( "Templates.js", out, files );
 	}
 
@@ -65,7 +74,7 @@ public class Template {
 	 * @param out The output directory to save the files to
 	 * @param files The parsed and documented JavaScript files
 	 */
-	public void dispatch( String scriptName, String out, ScriptFile[] files ) throws Exception{
+	public void dispatch( String scriptName, File out, ScriptFile[] files ) throws Exception{
 
 		// Get dispatch file
 		File dispatch = new File(tmplRoot, scriptName);
@@ -74,13 +83,11 @@ public class Template {
 		}
 
 		// Setup environment
-		cx = (new ContextFactory()).enterContext();
 		scope = cx.initStandardObjects();
-
-		// Add helper JS methods
 		scope.associateValue("output_writer", System.out);
 		scope.associateValue("template", this);
 		scope.associateValue("doc_root", tmplRoot.getAbsolutePath());
+		scope.associateValue("doc_out", out.getCanonicalFile()); // need full path for validation
 		JSHelpers.load(scope, new String[]{ "template" });
 
 		// Run dispatch script
@@ -129,12 +136,44 @@ public class Template {
 	 * @param out The output stream that the processed template will be pushed to.
 	 * @param globals A Map of global properties you want available to the template
 	 */
+	public void parse(String template, String out, ScriptableObject globals)
+		throws IOException {
+
+		// Convert JS object into globals map
+		String key;
+		Map<String, Object> globalMap = new HashMap<String, Object>();
+		Object[] props = ScriptableObject.getPropertyIds(globals);
+		for( int i = 0; i < props.length; i++ ){
+			key = (String)props[i];
+			globalMap.put(key, ScriptableObject.getProperty(globals, key));
+		}
+
+		// Setup template and output
+		File tmplFile = new File(tmplRoot, template);
+		BufferedOutputStream fileOut = new BufferedOutputStream( new FileOutputStream( out ) );
+
+		// Parse
+		parse( tmplFile, fileOut, globalMap );
+		fileOut.close();
+	}
+
+	/**
+	 * Parse a template file
+	 * @param template The path to a template file to process
+	 * 					This needs to exist under the 'templateRoot' path.
+	 * @param out The output stream that the processed template will be pushed to.
+	 * @param globals A Map of global properties you want available to the template
+	 */
 	public void parse(File template, OutputStream out, Map<String, Object> globals)
 		throws IOException {
 
 		// Exists and is under template root?
-		if( !template.exists() || tmplRoot.getCanonicalPath().indexOf( template.getParentFile().getCanonicalPath() ) == -1){
-			throw new FileNotFoundException("The file '"+ template.getPath() +"' does not exist in '"+ tmplRoot.getPath() +"'");
+		template = template.getCanonicalFile();
+		if( template.getPath().indexOf( tmplRoot.getPath() ) != 0){
+			throw new IOException("The file '"+ template.getName() +"' is not within '"+ tmplRoot.getPath() +"'.\n" +
+					"You cannot include files outside of the template set directory!");
+		} else if ( !template.exists() ){
+			throw new FileNotFoundException("The file '"+ template.getPath() +"' does not exist.");
 		}
 
 		// Read template file
@@ -172,6 +211,9 @@ public class Template {
 
 		// Convert and execute
 		String tmplJS = convertTemplate(contents.toString());
+		if( debug ){
+			System.out.println(tmplJS);
+		}
 		cx.evaluateString(scope, tmplJS, template.getPath(), 1, null);
 
 		out.flush();
@@ -303,7 +345,7 @@ public class Template {
 
 		code = code.replaceAll("\\\\", "\\\\"); // Convert '\' to '\\'
 		code = code.replaceAll("\"", "\\\""); // Convert '"' to '\"'
-		code = code.replaceAll("\n", "\"+\n\""); // Convert '\n' to '"+\n"'
+		code = code.replaceAll("\n", "\"+\n\"\\\\n"); // Convert '\n' to '"+\n"'
 
 		return code;
 	}
