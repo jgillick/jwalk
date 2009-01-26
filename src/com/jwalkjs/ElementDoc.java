@@ -27,13 +27,11 @@ public class ElementDoc {
 
 	private Hashtable<String,Scriptable> params = null;
 	private Scriptable scope;
-	private Context cx;
 
 	/**
 	 * Extract the meta from the JS element into this ElementMeta object
 	 */
-	public ElementDoc(Context cx, Scriptable scope, Element elem){
-		this.cx = cx;
+	public ElementDoc(Scriptable scope, Element elem){
 		this.scope = scope;
 		this.element = elem;
 		elem.doc = this;

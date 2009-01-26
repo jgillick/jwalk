@@ -45,21 +45,31 @@ public final class JWalkParser {
 	 */
 	public static ScriptFile parseFile(String path, boolean incComments)
 		throws java.io.FileNotFoundException, java.io.IOException {
+		
+		return parseFile( new File(path), incComments );
+	}
+	
+	/**
+	 * Parse a JavaScript file and return an element tree
+	 * @param path The file path to the JS file
+	 * @param incComments Extract comments from the source
+	 */
+	public static ScriptFile parseFile(File jsFile, boolean incComments)
+		throws java.io.FileNotFoundException, java.io.IOException {
 
 		comments = null;
 
 		// Init JS playground
-		Context cx = (new ContextFactory()).enterContext();
 		CompilerEnvirons env = new CompilerEnvirons();
 
 		// Read source code
-		ScriptFile sourceFile = new ScriptFile(path);
+		ScriptFile sourceFile = new ScriptFile(jsFile);
 		sourceLength = sourceFile.source.length();
 
 		// Parse
 		ErrorReporter errorReporter = env.getErrorReporter();
 		Parser parser = new Parser(env, errorReporter);
-		ScriptOrFnNode root = parser.parse(sourceFile.source, path, 1);
+		ScriptOrFnNode root = parser.parse(sourceFile.source, jsFile.getAbsolutePath(), 1);
 
 		Element global = new Element(root, null, Element.ROOT);
 		global.script = sourceFile;

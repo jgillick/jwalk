@@ -42,15 +42,23 @@ public class ScriptFile {
 	 * @throws IOException
 	 */
 	protected ScriptFile(String path) throws IOException{
-		File file = new File(path);
+		this ( new File(path) );
+	}
+	
+	/**
+	 * Reads the contents of the source file
+	 * @param path The JavaScript file to read.
+	 * @throws IOException
+	 */
+	protected ScriptFile(File sourceFile) throws IOException{
 
-		this.path = file.getPath();
-		this.name = file.getName();
+		this.path = sourceFile.getPath();
+		this.name = sourceFile.getName();
 
 		// Read file contents
 		String line;
 		StringBuilder content = new StringBuilder();
-		BufferedReader reader = new BufferedReader( new FileReader(file) );
+		BufferedReader reader = new BufferedReader( new FileReader(sourceFile) );
 		while((line = reader.readLine()) != null){
 			content.append(line);
 			content.append(System.getProperty("line.separator"));

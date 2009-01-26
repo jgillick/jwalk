@@ -92,6 +92,22 @@ public class Element implements Comparable {
 			this.script = this.top.script;
 		}
 	}
+	
+	/**
+	 * Generate the documentation element for this element
+	 * @param scope The current script scope
+	 */
+	public ElementDoc generateDocElement( Scriptable scope ){
+		return new ElementDoc( scope, this );
+	}
+	
+	/**
+	 * Destroy the documentation element
+	 */
+	public void destroyDocElement(){
+		this.doc.element = null;
+		this.doc = null;
+	}
 
 	/**
 	 * Returns all the comments in the current source file

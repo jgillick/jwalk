@@ -51,6 +51,14 @@ public class Template {
 	}
 	
 	/**
+	 * Find and run the 'templates.js' file in the root template directory.
+	 * @param out The output directory to save the files to
+	 */
+	public void run( String out ){
+		
+	}
+	
+	/**
 	 * Parse a template file
 	 * @param template The path to a template file to process
 	 * 					This needs to exist under the 'templateRoot' path. 
