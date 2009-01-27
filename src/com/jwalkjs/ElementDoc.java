@@ -21,6 +21,10 @@ public class ElementDoc {
 	public int lineno = -1;
 	public int linepos = -1;
 
+	public boolean isStatic = false;
+	public boolean isPrivate = false;
+	public boolean implicitGlobal = false;
+	
 	public Scriptable type;
 	public String description = "";
 	public String short_description = "";
@@ -39,6 +43,8 @@ public class ElementDoc {
 		this.name = elem.name;
 		this.lineno = elem.lineno;
 		this.linepos = elem.start;
+		this.isPrivate = elem.is_private;
+		this.implicitGlobal = elem.implicit_global;
 
 		// Datatype to JSON object: { type: "string", desc: "..." };
 		String type = "unknown";
