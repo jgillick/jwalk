@@ -1,14 +1,11 @@
-<html>
-<head>
-	<title>All JavaScript Elements</title>
-</head>
-<body>
-	<% include('header.inc'); %>
+<% include('header.inc'); %>
+	<h1>JWalk Documentation</h1>
 	<ul>
 		<% for( var i = 0; i < files.length; i++ ){ %>
-			<li><%= files[i].name %></li>
+			<li>
+				<a href="<%= pathForScript(files[i]) %>">
+					<%= files[i].name %></a>
+			</li>
 		<% } %>
 	</ul>
-
-</body>
-</html>
+<% include('footer.inc'); %>

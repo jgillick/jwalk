@@ -218,6 +218,7 @@ public class Template {
 
 		out.flush();
 		out.close();
+		scope = null;
 	}
 
 	/**
@@ -344,7 +345,7 @@ public class Template {
 	private String escape(String code){
 
 		code = code.replaceAll("\\\\", "\\\\"); // Convert '\' to '\\'
-		code = code.replaceAll("\"", "\\\""); // Convert '"' to '\"'
+		code = code.replaceAll("\"", "\\\\\""); // Convert '"' to '\"'
 		code = code.replaceAll("\n", "\"+\n\"\\\\n"); // Convert '\n' to '"+\n"'
 
 		return code;

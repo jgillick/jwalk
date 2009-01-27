@@ -1,11 +1,11 @@
 package com.jwalkjs;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
 
 public class ElementDoc {
 
@@ -163,6 +163,7 @@ public class ElementDoc {
 	public Object getChildren(int symbol){
 		ArrayList<ElementDoc> children = new ArrayList<ElementDoc>();
 
+		// Build array of children
 		Element child;
 		for( int i = 0; i < element.children.size(); i++ ){
 			child = element.children.get(i);
@@ -170,6 +171,9 @@ public class ElementDoc {
 				children.add(child.doc);
 			}
 		}
+
+		// Sort by name
+		Collections.sort(children, new ListCompare());
 
 		return Context.javaToJS(children.toArray(), this.scope);
 	}
@@ -189,5 +193,4 @@ public class ElementDoc {
 	public Element getRoot(){
 		return this.element.top;
 	}
-
 }

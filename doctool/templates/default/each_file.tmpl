@@ -1,0 +1,34 @@
+<% include('header.inc'); %>
+	<h1><%= file.name %></h1>
+
+	<h2>Objects</h2>
+	<dl>
+		<% for( var i = 0; i < objects.length; i++ ){ %>
+			<dt><%= objects[i].name %></dt>
+			<dd><%= objects[i].description %></dd>
+		<% } %>
+	</dl>
+
+	<h2>Variables</h2>
+	<dl>
+		<% for( var i = 0; i < variables.length; i++ ){ %>
+			<dt><%= variables[i].name %></dt>
+			<dd><%= variables[i].description %></dd>
+		<% } %>
+	</dl>
+
+	<h2>Functions</h2>
+	<dl>
+		<% for( var i = 0; i < functions.length; i++ ){ %>
+			<dt>
+				<% if(functions[i].name == null){ %>
+					[Anonymous]
+				<% } else { %>
+					<%= functions[i].name %>
+				<% } %>
+			</dt>
+			<dd><%= functions[i].description %></dd>
+		<% } %>
+	</dl>
+
+<% include('footer.inc'); %>

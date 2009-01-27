@@ -28,14 +28,10 @@ public final class JWalkParser {
 	private static Element[] allElements;
 	private static ArrayList<Comment> comments = null;
 
-	public static void main(String[] args){
-		try{
-			debug = 0x0010;
-			ScriptFile script = parseFile(args[0], true);
-			//printTree(script.global, 0);
-		} catch(Exception e){
-			System.out.println(e.toString());
-		}
+	public static void main(String[] args) throws Exception{
+		debug = 0x0010;
+		ScriptFile script = parseFile(args[0], true);
+		//printTree(script.global, 0);
 	}
 
 	/**
@@ -383,50 +379,54 @@ public final class JWalkParser {
 		// Find the element right above the comment
 		// Use the offset and source length to guess where in the allElements array
 		// the element is.
-		int elemNum = allElements.length;
-		int index = (int)Math.round((float)offset/(float)sourceLength * (float)elemNum);
-		int direction = 1;
+		if(allElements.length > 0){
+			int elemNum = allElements.length;
+			int index = (int)Math.round((float)offset/(float)sourceLength * (float)elemNum);
+			int direction = 1;
+			if(index >= allElements.length){
+				index = allElements.length - 1;
+			}
+			Element elem = allElements[index];
+			Element nextElem = (index + 1 < allElements.length) ? allElements[index + 1] : null;
+			while(elem != null){
 
-		Element elem = allElements[index];
-		Element nextElem = (index + 1 < allElements.length) ? allElements[index + 1] : null;
-		while(elem != null){
+				// Found
+				if(elem.start < offset && (nextElem == null || nextElem.start >= offset)){
+					comment.previousSibling = elem;
+					comment.nextSibling = nextElem;
+					break;
+				}
+				// Overshot, change directions
+				else if(elem.start > offset){
+					direction = -1;
+				}
 
-			// Found
-			if(elem.start < offset && (nextElem == null || nextElem.start >= offset)){
-				comment.previousSibling = elem;
+				// Get next element
+				index += direction;
+				if(index > 0 && index < allElements.length){
+					elem = allElements[index];
+					nextElem = (index + 1 < allElements.length) ? allElements[index + 1] : null;
+				}
+				else{
+					elem = null;
+					index = 0;
+					break;
+				}
+			}
+
+			// Must be at the start of the file
+			if(index == 0){
+				nextElem = allElements[0];
 				comment.nextSibling = nextElem;
-				break;
-			}
-			// Overshot, change directions
-			else if(elem.start > offset){
-				direction = -1;
 			}
 
-			// Get next element
-			index += direction;
-			if(index > 0 && index < allElements.length){
-				elem = allElements[index];
-				nextElem = (index + 1 < allElements.length) ? allElements[index + 1] : null;
+			// Add to Element node
+			if(elem != null){
+				elem.nextComment = comment;
 			}
-			else{
-				elem = null;
-				index = 0;
-				break;
+			if(nextElem != null){
+				nextElem.previousComment = comment;
 			}
-		}
-
-		// Must be at the start of the file
-		if(index == 0){
-			nextElem = allElements[0];
-			comment.nextSibling = nextElem;
-		}
-
-		// Add to Element node
-		if(elem != null){
-			elem.nextComment = comment;
-		}
-		if(nextElem != null){
-			nextElem.previousComment = comment;
 		}
 
 		comments.add(comment);

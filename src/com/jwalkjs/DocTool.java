@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +57,9 @@ public class DocTool implements FileFilter {
 				System.out.println("Parsing '"+ sourceJS.getName() +"' ...");
 			}
 			ArrayList<ScriptFile> scripts = parseSourceFiles(sourceJS);
+
+			// Sort file list by name
+			Collections.sort(scripts, new ListCompare());
 
 			// Run comment parser on all files
 			System.out.println("Reading comments...");

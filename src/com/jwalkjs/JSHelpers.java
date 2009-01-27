@@ -20,21 +20,28 @@ public class JSHelpers {
 	 * By default this loads the 'print' and 'include' functions.
 	 * @param scope The JavaScript scope
 	 */
-	protected static void load(ScriptableObject scope){
+	protected static void load(ScriptableObject scope) {
 		load(scope, new String[0]);
 	}
 
 	/**
 	 * Load the helper methods into the JavaScript scope.
-	 * By default this loads the 'print' and 'include' functions.
+	 * By default this loads the 'print', 'log' and 'include' functions.
 	 * @param scope The JavaScript scope
 	 * @param include List of the non-default script functions to include
 	 */
-	protected static void load(ScriptableObject scope, String[] include){
-		String[] defnames = { "print", "include" };
+	protected static void load(ScriptableObject scope, String[] include) {
+		String[] defnames = { "print", "include", "log" };
 
 		scope.defineFunctionProperties(defnames, JSHelpers.class, ScriptableObject.DONTENUM);
 		scope.defineFunctionProperties(include, JSHelpers.class, ScriptableObject.DONTENUM);
+
+		// Constants
+		ScriptableObject.putConstProperty(scope, "SYMBOL_FUNCTION", ElementDoc.FUNCTION);
+		ScriptableObject.putConstProperty(scope, "SYMBOL_VARIABLE", ElementDoc.VARIABLE);
+		ScriptableObject.putConstProperty(scope, "SYMBOL_OBJECT", ElementDoc.OBJECT);
+		ScriptableObject.putConstProperty(scope, "SYMBOL_PROPERTY", ElementDoc.PROPERTY);
+		ScriptableObject.putConstProperty(scope, "SYMBOL_METHOD", ElementDoc.METHOD);
 	}
 
 	/**
@@ -56,8 +63,7 @@ public class JSHelpers {
 	 * Requires the 'output_writer' property to be set via scope.associateValue.
 	 * 		For example: scope.associateValue("output_writer", System.out);
 	 */
-	public static void print(Context cx, Scriptable scope, Object[] args, Function funObj)
-		throws Exception{
+	public static void print(Context cx, Scriptable scope, Object[] args, Function funObj) throws Exception{
 		if( args.length == 0 ){
 			return;
 		}
@@ -86,20 +92,37 @@ public class JSHelpers {
 	}
 
 	/**
+	 * Is the same as 'print' but always outputs to System.out
+	 */
+	public static void log(Context cx, Scriptable scope, Object[] args, Function funObj) throws Exception{
+		if( args.length == 0 ){
+			return;
+		}
+
+		// Convert to String
+		String content;
+		content = (String)Context.jsToJava((Object)args[0], String.class);
+
+		System.out.println(content);
+	}
+
+
+	/**
 	 * Includes and executes a JavaScript file
 	 * This requires 2 associated values to be set by scope.associateValue
 	 * 		- doc_root: The directory root where all the includable script files exist
 	 * 		- template: The Template instance or null
 	 */
-	public static void include(Context cx, Scriptable scope, Object[] args, Function funObj)
-		throws Exception{
+	public static void include(Context cx, Scriptable scope, Object[] args, Function funObj) throws Exception{
 		if( args.length == 0 ){
 			return;
 		}
 
+		// Get args and values
 		String filePath = (String)args[0];
 		String docRoot = (String)getAssociatedValue(scope, "doc_root");
 		Template template = (Template)getAssociatedValue(scope, "template");
+
 		Exception fileEx = new Exception("Could not read file '"+ filePath +"', are you sure it exists under '"+ docRoot +"'");
 
 		File file = new File(docRoot, filePath);
@@ -124,20 +147,21 @@ public class JSHelpers {
 
 		// Prepare source
 		String src = contents.toString();
-		if( template != null ){
+		if( template != null && !filePath.toLowerCase().matches("^.*?\\.js$") ){
 			src = template.convertTemplate(src);
 		}
 
 		// Execute
-		Script script = cx.compileString(src, file.getPath(), 0, null);
+		Script script = cx.compileString(src, file.getPath(), 1, null);
 		script.exec(cx, scope);
 	}
 
 	/**
 	 * Build and output a template file.
-	 * This requires 2 associated values to be set by scope.associateValue
+	 * This requires 3 associated values to be set by scope.associateValue
 	 * 		- doc_root: The directory root where all the includable script files exist
 	 * 		- doc_out: The root directory for the template output
+	 * 		- template: The Template instance or null
 	 *
 	 * The JS function params are:
 	 *   - tmpl: The template file path, relative to the doc_root
@@ -174,7 +198,6 @@ public class JSHelpers {
 
 		// Run template
 		Template template = (Template)getAssociatedValue(scope, "template");
-
 		template.parse(tmpl, outFile.getAbsolutePath(), vars);
 	}
 }
